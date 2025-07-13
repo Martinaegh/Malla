@@ -1,70 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Malla Interactiva</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Interactiva - Pedagogía en Matemática y Computación</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #111;
+      font-family: sans-serif;
+      background-color: #ffe6f0;
     }
-    canvas {
-      display: block;
+    h1 {
+      text-align: center;
+      padding: 1em;
+      color: #cc2e70;
+    }
+    .semestre {
+      display: flex;
+      flex-direction: column;
+      background-color: #ffd6e7;
+      padding: 1em;
+      margin: 1em;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1em;
+    }
+    .ramo {
+      background-color: #f9d0e0;
+      border: 2px solid #cc2e70;
+      border-radius: 8px;
+      padding: 1em;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+    .ramo:hover {
+      transform: scale(1.03);
+    }
+    .ramo.completado {
+      background-color: #f3a7c0;
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+    .malla {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
   </style>
 </head>
 <body>
-<canvas id="malla"></canvas>
+  <h1>Malla Interactiva - Pedagogía en Matemática y Computación</h1>
+  <div class="malla" id="malla"></div>
 
-<script>
-  const canvas = document.getElementById('malla');
-  const ctx = canvas.getContext('2d');
-
-  let width, height, mouse = {x: 0, y: 0};
-  const spacing = 40;
-
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  }
-
-  window.addEventListener('resize', resize);
-  window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-
-  function draw() {
-    ctx.clearRect(0, 0, width, height);
-    ctx.strokeStyle = '#0ff';
-    ctx.lineWidth = 1;
-
-    for (let x = 0; x < width; x += spacing) {
-      for (let y = 0; y < height; y += spacing) {
-        const dx = mouse.x - x;
-        const dy = mouse.y - y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const angle = Math.atan2(dy, dx);
-
-        const offset = Math.min(10, 100 / dist);
-        const x2 = x + Math.cos(angle) * offset;
-        const y2 = y + Math.sin(angle) * offset;
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+  <script>
+    const ramos = [
+      {
+        semestre: 1,
+        asignaturas: [
+          "Álgebra y trigonometría",
+          "Geometría en el plano y el espacio",
+          "Introducción a la pedagogía en matemática y computación",
+          "Comunicación oral y escrita",
+          "Inglés I"
+        ]
+      },
+      {
+        semestre: 2,
+        asignaturas: [
+          "Cálculo",
+          "Álgebra lineal",
+          "Programación de computadores",
+          "Didáctica de la matemática",
+          "Sociología y antropología de la educación",
+          "Inglés II"
+        ]
+      },
+      {
+        semestre: 3,
+        asignaturas: [
+          "Cálculo diferencial e integral en una variable",
+          "Geometría vectorial",
+          "Programación avanzada con estructuras de datos",
+          "Psicología del aprendizaje",
+          "Práctica I: Identidad profesional"
+        ]
+      },
+      {
+        semestre: 4,
+        asignaturas: [
+          "Cálculo diferencial e integral en varias variables",
+          "Estructuras algebraicas",
+          "Sistemas operativos",
+          "Didáctica de la geometría",
+          "Desarrollo curricular",
+          "Inglés III"
+        ]
+      },
+      {
+        semestre: 5,
+        asignaturas: [
+          "Electivo de matemática",
+          "Estadística descriptiva y probabilidad",
+          "Redes de computadoras y aplicaciones móviles",
+          "Didáctica del álgebra",
+          "Inglés IV",
+          "Práctica II: diversidad e inclusión"
+        ]
       }
-    }
+      // Puedes seguir agregando semestres y ramos hasta el 10mo
+    ];
 
-    requestAnimationFrame(draw);
-  }
+    const container = document.getElementById('malla');
 
-  resize();
-  draw();
-</script>
+    ramos.forEach(bloque => {
+      const sem = document.createElement('div');
+      sem.className = 'semestre';
+
+      const titulo = document.createElement('h2');
+      titulo.textContent = `Semestre ${bloque.semestre}`;
+      titulo.style.color = '#cc2e70';
+      sem.appendChild(titulo);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      bloque.asignaturas.forEach(nombre => {
+        const ramo = document.createElement('div');
+        ramo.className = 'ramo';
+        ramo.textContent = nombre;
+
+        ramo.addEventListener('click', () => {
+          ramo.classList.toggle('completado');
+        });
+
+        grid.appendChild(ramo);
+      });
+
+      sem.appendChild(grid);
+      container.appendChild(sem);
+    });
+  </script>
 </body>
 </html>
