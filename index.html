@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Malla Interactiva</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="malla"></canvas>
+
+<script>
+  const canvas = document.getElementById('malla');
+  const ctx = canvas.getContext('2d');
+
+  let width, height, mouse = {x: 0, y: 0};
+  const spacing = 40;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = '#0ff';
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < width; x += spacing) {
+      for (let y = 0; y < height; y += spacing) {
+        const dx = mouse.x - x;
+        const dy = mouse.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx);
+
+        const offset = Math.min(10, 100 / dist);
+        const x2 = x + Math.cos(angle) * offset;
+        const y2 = y + Math.sin(angle) * offset;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  draw();
+</script>
+</body>
+</html>
