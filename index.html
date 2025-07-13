@@ -16,8 +16,7 @@
       color: #cc2e70;
     }
     .semestre {
-      display: flex;
-      flex-direction: column;
+      min-width: 300px;
       background-color: #ffd6e7;
       padding: 1em;
       margin: 1em;
@@ -25,8 +24,8 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 1em;
     }
     .ramo {
@@ -46,10 +45,16 @@
       text-decoration: line-through;
       opacity: 0.7;
     }
+    .ramo.bloqueado {
+      background-color: #e0b3d7;
+      color: #777;
+      cursor: not-allowed;
+    }
     .malla {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 1em;
     }
   </style>
 </head>
@@ -59,91 +64,94 @@
 
   <script>
     const ramos = [
-      {
-        semestre: 1,
-        asignaturas: [
-          "Álgebra y trigonometría",
-          "Geometría en el plano y el espacio",
-          "Introducción a la pedagogía en matemática y computación",
-          "Comunicación oral y escrita",
-          "Inglés I"
-        ]
-      },
-      {
-        semestre: 2,
-        asignaturas: [
-          "Cálculo",
-          "Álgebra lineal",
-          "Programación de computadores",
-          "Didáctica de la matemática",
-          "Sociología y antropología de la educación",
-          "Inglés II"
-        ]
-      },
-      {
-        semestre: 3,
-        asignaturas: [
-          "Cálculo diferencial e integral en una variable",
-          "Geometría vectorial",
-          "Programación avanzada con estructuras de datos",
-          "Psicología del aprendizaje",
-          "Práctica I: Identidad profesional"
-        ]
-      },
-      {
-        semestre: 4,
-        asignaturas: [
-          "Cálculo diferencial e integral en varias variables",
-          "Estructuras algebraicas",
-          "Sistemas operativos",
-          "Didáctica de la geometría",
-          "Desarrollo curricular",
-          "Inglés III"
-        ]
-      },
-      {
-        semestre: 5,
-        asignaturas: [
-          "Electivo de matemática",
-          "Estadística descriptiva y probabilidad",
-          "Redes de computadoras y aplicaciones móviles",
-          "Didáctica del álgebra",
-          "Inglés IV",
-          "Práctica II: diversidad e inclusión"
-        ]
-      }
-      // Puedes seguir agregando semestres y ramos hasta el 10mo
+      { semestre: 1, asignaturas: [
+        { nombre: "Álgebra y trigonometría", id: "algTrig" },
+        { nombre: "Geometría en el plano y el espacio", id: "geomPlano" },
+        { nombre: "Introducción a la pedagogía en matemática y computación", id: "introPed" },
+        { nombre: "Comunicación oral y escrita", id: "comOral" },
+        { nombre: "Inglés I", id: "ing1" },
+      ]},
+      { semestre: 2, asignaturas: [
+        { nombre: "Cálculo", id: "calculo", req: ["algTrig"] },
+        { nombre: "Álgebra lineal", id: "algLineal", req: ["algTrig", "geomPlano"] },
+        { nombre: "Programación de computadores", id: "prog", req: ["introPed"] },
+        { nombre: "Didáctica de la matemática", id: "didMate" },
+        { nombre: "Sociología y antropología de la educación", id: "socAnt", req: ["introPed"] },
+        { nombre: "Inglés II", id: "ing2", req: ["ing1"] },
+      ]},
+      { semestre: 3, asignaturas: [
+        { nombre: "Cálculo diferencial e integral en una variable", id: "calculo1", req: ["calculo"] },
+        { nombre: "Geometría vectorial", id: "geomVect", req: ["algLineal"] },
+        { nombre: "Programación avanzada con estructuras de datos", id: "progAdv", req: ["prog"] },
+        { nombre: "Psicología del aprendizaje", id: "psico", req: ["socAnt"] },
+        { nombre: "Práctica I: Identidad profesional", id: "prac1", req: ["socAnt"] },
+      ]},
+      { semestre: 4, asignaturas: [
+        { nombre: "Cálculo diferencial e integral en varias variables", id: "calculo2", req: ["calculo1"] },
+        { nombre: "Estructuras algebraicas", id: "estrucAlg", req: ["algLineal"] },
+        { nombre: "Sistemas operativos", id: "sisOp", req: ["progAdv"] },
+        { nombre: "Didáctica de la geometría", id: "didGeom", req: ["didMate"] },
+        { nombre: "Desarrollo curricular", id: "desCur", req: ["psico"] },
+        { nombre: "Inglés III", id: "ing3", req: ["ing2"] },
+      ]},
+      { semestre: 5, asignaturas: [
+        { nombre: "Electivo de matemática", id: "electMat", req: ["calculo1"] },
+        { nombre: "Estadística descriptiva y probabilidad", id: "estad1", req: ["calculo2"] },
+        { nombre: "Redes de computadoras y aplicaciones móviles", id: "redes", req: ["sisOp"] },
+        { nombre: "Didáctica del álgebra", id: "didAlg", req: ["algLineal", "didMate"] },
+        { nombre: "Inglés IV", id: "ing4", req: ["ing3"] },
+        { nombre: "Práctica II: diversidad e inclusión", id: "prac2", req: ["prac1"] },
+      ]}
     ];
+
+    const completados = new Set();
 
     const container = document.getElementById('malla');
 
-    ramos.forEach(bloque => {
-      const sem = document.createElement('div');
-      sem.className = 'semestre';
+    function crearMalla() {
+      container.innerHTML = '';
+      ramos.forEach(bloque => {
+        const sem = document.createElement('div');
+        sem.className = 'semestre';
 
-      const titulo = document.createElement('h2');
-      titulo.textContent = `Semestre ${bloque.semestre}`;
-      titulo.style.color = '#cc2e70';
-      sem.appendChild(titulo);
+        const titulo = document.createElement('h2');
+        titulo.textContent = `Semestre ${bloque.semestre}`;
+        titulo.style.color = '#cc2e70';
+        sem.appendChild(titulo);
 
-      const grid = document.createElement('div');
-      grid.className = 'grid';
+        const grid = document.createElement('div');
+        grid.className = 'grid';
 
-      bloque.asignaturas.forEach(nombre => {
-        const ramo = document.createElement('div');
-        ramo.className = 'ramo';
-        ramo.textContent = nombre;
+        bloque.asignaturas.forEach(asig => {
+          const ramo = document.createElement('div');
+          ramo.className = 'ramo';
+          ramo.textContent = asig.nombre;
 
-        ramo.addEventListener('click', () => {
-          ramo.classList.toggle('completado');
+          const requisitos = asig.req || [];
+          const habilitado = requisitos.every(r => completados.has(r));
+
+          if (!habilitado) ramo.classList.add('bloqueado');
+          if (completados.has(asig.id)) ramo.classList.add('completado');
+
+          ramo.addEventListener('click', () => {
+            if (!habilitado) return;
+            if (completados.has(asig.id)) {
+              completados.delete(asig.id);
+            } else {
+              completados.add(asig.id);
+            }
+            crearMalla();
+          });
+
+          grid.appendChild(ramo);
         });
 
-        grid.appendChild(ramo);
+        sem.appendChild(grid);
+        container.appendChild(sem);
       });
+    }
 
-      sem.appendChild(grid);
-      container.appendChild(sem);
-    });
+    crearMalla();
   </script>
 </body>
 </html>
